@@ -5,7 +5,7 @@ function getEntityNodeLinks (entities, nodeData) {
   const links = {}
   entities.forEach((entity) => {
     const { name } = entity
-    const linkName = name + '___NODE'
+    const linkName = name
     if (links[linkName]) {
       links[linkName] = isArray(links[linkName])
         ? [...links[linkName], entity.id]
