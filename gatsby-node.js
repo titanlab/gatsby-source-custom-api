@@ -7,7 +7,6 @@ const getUrl = require('./utils/getUrl')
 const getTypeDefs = require('./utils/getTypeDefs')
 const buildNode = require('./utils/buildNode')
 
-
 exports.createSchemaCustomization = async ({ actions }, configOptions) => {
   const { createTypes } = actions;
   const { 
@@ -21,7 +20,7 @@ exports.createSchemaCustomization = async ({ actions }, configOptions) => {
 
 exports.sourceNodes = async (
   {
-    actions, createNodeId, createContentDigest, store, cache
+    actions, createNodeId, createContentDigest, store, cache, reporter
   },
   configOptions
 ) => {
@@ -36,6 +35,9 @@ exports.sourceNodes = async (
   } = configOptions
 
   const URL = getUrl(process.env.NODE_ENV, url)
+  
+  reporter.log(`requesting ${rootKey} from custom API ${URL}`)
+  
   const data = await fetch(URL, { headers }).then(res => res.json()).catch(err => console.log(err))
 
   // build entities and correct schemas, where necessary
