@@ -36,9 +36,10 @@ exports.sourceNodes = async (
 
   const URL = getUrl(process.env.NODE_ENV, url)
   
-  reporter.log(`requesting ${rootKey} from custom API ${URL}`)
-  
+  const reqActivity = reporter.activityTimer(`requesting ${rootKey} from custom API ${URL}`)
+  reqActivity.start(); 
   const data = await fetch(URL, { headers }).then(res => res.json()).catch(err => console.log(err))
+  reqActivity.end()
 
   // build entities and correct schemas, where necessary
   let entities = flattenEntities(createNodeEntities({
