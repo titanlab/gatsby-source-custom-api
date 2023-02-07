@@ -9,9 +9,9 @@ const buildNode = require('./utils/buildNode')
 
 exports.createSchemaCustomization = async ({ actions }, configOptions) => {
   const { createTypes } = actions;
-  const { 
-    imageKeys = ["image"], 
-    schemas = {} 
+  const {
+    imageKeys = ["image"],
+    schemas = {}
   } = configOptions;
 
   const typeDefs = getTypeDefs(schemas, imageKeys);
@@ -35,10 +35,15 @@ exports.sourceNodes = async (
   } = configOptions
 
   const URL = getUrl(process.env.NODE_ENV, url)
-  
+
   const reqActivity = reporter.activityTimer(`requesting ${rootKey} from custom API ${URL}`)
-  reqActivity.start(); 
-  const data = await fetch(URL, { headers }).then(res => res.json()).catch(err => console.log(err))
+  reqActivity.start();
+  const data = await fetch(URL, { headers })
+    .then(res => res.json())
+    .catch(err => {
+      console.log(err)
+      reporter.panicOnBuild(`fetching ${rootKey} from custom API ${URL} failed`, new Error(err))
+    })
   reqActivity.end()
 
   // build entities and correct schemas, where necessary
