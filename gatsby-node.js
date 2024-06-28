@@ -36,40 +36,59 @@ exports.sourceNodes = async (
 
   const URL = getUrl(process.env.NODE_ENV, url)
 
-  const reqActivity = reporter.activityTimer(`requesting ${rootKey} from custom API ${URL}`)
-  reqActivity.start();
-  const data = await fetch(URL, { headers })
-    .then(res => res.json())
-    .catch(err => {
-      console.log(err)
-      reporter.panicOnBuild(`fetching ${rootKey} from custom API ${URL} failed`, new Error(err))
-    })
-  reqActivity.end()
+  let timer = reporter.activityTimer(`requesting ${rootKey} from custom API ${URL}`)
+  timer.start();
+  const data = await fetch(URL, { headers }).then(res => res.json()).catch(err => console.log(err))
+  timer.end();
 
   // build entities and correct schemas, where necessary
-  let entities = flattenEntities(createNodeEntities({
+  timer = reporter.activityTimer(`sourcing ${rootKey}: creating ${data.length} node entities`);
+  timer.start();
+  let entities = createNodeEntities({
     name: rootKey,
     data,
     schemas,
     createNodeId
-  }))
+  })
+  timer.end();
+
+  // flatten them
+  timer = reporter.activityTimer(`sourcing ${rootKey}: flattening ${entities.length} node entities`);
+  timer.start();
+  entities = flattenEntities(entities, [], timer);
+  timer.end();
 
   // check for problematic keys
+  timer = reporter.activityTimer(`sourcing ${rootKey}: checking for problematic keys`);
+  timer.start();
   entities = entities.map(entity => ({
     ...entity,
     data: normalizeKeys(entity.data)
   }))
+  timer.end();
 
   // load images or default-dummy-image
+  timer = reporter.activityTimer(`sourcing ${rootKey}: loading images`);
+  timer.start();
   entities = await loadImages({
     entities, imageKeys, createNode, createNodeId, touchNode, store, cache, createContentDigest, auth
   })
+  timer.end();
 
   // build gatsby-node-object
+  timer = reporter.activityTimer(`sourcing ${rootKey}: building gatsby-node objects`);
+  timer.start();
   entities = entities.map(entity => buildNode({ entity, createContentDigest }))
+  timer.end();
+
 
   // render nodes
+  timer = reporter.activityTimer(`sourcing ${rootKey}: creating nodes from ${entities.length} entities`);
+  timer.start();
   entities.forEach((entity) => {
     createNode(entity)
   })
+  timer.end();
+
+  reporter.info(`sourcing ${rootKey}: finished`);
 }

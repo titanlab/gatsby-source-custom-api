@@ -7,7 +7,13 @@ function isObject (element) {
 }
 
 function flattenArray (array) {
-  return [].concat(...array)
+  const a = [];
+  for(let i = 0; i < array.length; i++) {
+    for(let j = 0; j < array[i].length; j++) {
+      a.push(array[i][j]);
+    }
+  }
+  return a;
 }
 
 function isArray (prop) {
